@@ -1,6 +1,6 @@
 <template>
-  <div class="home">
-    <div class="container">
+  <div class="home" v-if="mounted===true">
+    <div class="container" v-if="isLogin===true">
       <div id="code">
         <form v-on:submit.prevent>
 
@@ -27,6 +27,10 @@
 
       </div>
 
+    </div>
+
+    <div class="not-login" v-if="isLogin===false">
+        <p>Loginしてください</p>
     </div>
   </div>
 </template>
@@ -77,51 +81,37 @@ textarea {
     height: 450px;
     tab-size: 4;
 }
+
 </style>
 
 <script>
-// import $ from 'jquery'
+import firebase from "firebase";
+export default {
+  data () {
+    return {
+      mounted: false,
+      isLogin: false
+    }
+  },
+  mounted: function() {
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        // User is signed in, see docs for a list of available properties
+        // https://firebase.google.com/docs/reference/js/firebase.User
+        this.isLogin = true
+        this.mounted = true
+        // ...
+      } else {
+        // User is signed out
+        // ...
+        this.isLogin = false
+        this.mounted = true
+      }
+    });
+  },
+  constructor() {
+    this.user = firebase.auth().currentUser.uid
+  }
+}
 
-// export default {
-//   name: 'home',
-//   data() {
-//     return{
-//       newCode: '',
-//       code_list: [],
-//       modal_content: '',
-//       output_code: ''
-//     }
-//   },
-//   methods: {
-//   	addCode: function() {
-//       if(this.newCode == "") return;
-        
-//         var num = this.code_list.length + 1;
-//     	  var code = {
-//             title: num,
-//             content: this.newCode
-//         };
-
-//         this.code_list.push(code);
-//         this.newCode = "";
-//         $('#result').html("");
-//     },
-//     showCode: function(index) {
-
-//         this.newCode = this.code_list[index].content;
-        
-//         //メソッド発火時にmarkedも発動するように設定！
-//         var src = this.newCode;
-//         var html = marked(src);
-//         $('#result').html(html);
-//         $('pre code').each(function(i, block) {
-//             hljs.highlightBlock(block);
-//         });
-        
-//     },
-//     closeCode : function () {
-//         this.$modal.hide('hello-world');
-//     },
-//   },
-// }
 </script>

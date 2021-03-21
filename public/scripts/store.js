@@ -1,5 +1,3 @@
-Vue.use(window["vue-js-modal"].default);
-
 var code = new Vue ({
   el: '#code',
   data: {
@@ -13,7 +11,7 @@ var code = new Vue ({
     	if(this.newCode == "") return;
         
         var num = this.code_list.length + 1;
-    	var code = {
+    	  var code = {
             title: num,
             content: this.newCode
         };
