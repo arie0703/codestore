@@ -14,6 +14,9 @@ const config = {
 //firebase初期化処理
 firebase.initializeApp(config);
 
+export const db = firebase.firestore();
+
+
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'

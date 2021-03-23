@@ -21,10 +21,13 @@
             </div>
           </div>
         </form>
-      
         
-        
-
+        <ul v-for="(post, index) in posts" v-bind:key="index">
+          <li>
+            <span class="post" v-on:click="showCode(post.code)">{{post.title}}</span>
+            <span class="delete" v-on:click="deleteCode(index)">Delete</span>
+          </li>
+        </ul>
       </div>
 
     </div>
@@ -35,12 +38,130 @@
   </div>
 </template>
 
+<script>
+import firebase from "firebase";
+import {db} from '../main.js';
+import $ from 'jquery';
+import marked from 'marked';
+import hljs from 'highlightjs';
+
+export default {
+  data () {
+    return {
+      mounted: false,
+      isLogin: false,
+      posts: [],
+      newCode: "",
+    }
+  },
+  mounted: function() {
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) {
+        
+        // postsインスタンスに投稿データ代入
+        db.collection("posts")
+        .where("user_id","==",firebase.auth().currentUser.email)
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+              this.posts.push(doc.data())
+          });
+        });
+
+        //mounted判定 → viewの読み込み
+        this.isLogin = true
+        this.mounted = true
+
+
+        //marked.jsの設定ファイルをここで読み込ませる
+        var el = document.createElement("script");
+        el.src = "scripts/config.js";
+        document.body.appendChild(el);
+
+        // ...
+      } else {
+        // User is signed out
+        // ...
+        this.isLogin = false
+        this.mounted = true
+      }
+    });
+  },
+  methods: {
+    addCode: function() {
+      if(this.newCode == "") return;
+
+      var currentUser = firebase.auth().currentUser.email
+      var postId = this.posts.length + 1
+      var doc = currentUser + String(postId)
+      
+      db.collection("posts").doc(doc).set({
+        title: this.posts.length,
+        code: this.newCode,
+        user_id: currentUser,
+        created_at: new Date
+      }).then(
+        console.log(doc)
+      )
+        
+      this.newCode = "";
+      $('#result').html("");
+
+      //reset
+      this.reloadPosts();
+    },
+    showCode: function(code) {
+
+        this.newCode = code;
+        
+        //メソッド発火時にmarkedも発動するように設定！
+        var src = this.newCode;
+        var html = marked(src);
+        $('#result').html(html);
+        $('pre code').each(function(i, block) {
+            hljs.highlightBlock(block);
+        });
+        
+    },
+    deleteCode: function(index) {
+
+      var currentUser = firebase.auth().currentUser.email
+      var postId = index + 1
+      var doc = currentUser + String(postId)
+
+      db.collection("posts").doc(doc).delete().then(() => {
+          alert("deleted.")
+      });
+      this.reloadPosts()
+        
+    },
+    reloadPosts: function() {
+
+      this.posts = [];
+      db.collection("posts")
+        .where("user_id","==",firebase.auth().currentUser.email)
+        .get()
+        .then((querySnapshot) => {
+          querySnapshot.forEach((doc) => {
+              this.posts.push(doc.data())
+          });
+      });
+    }
+  },
+  constructor() {
+    this.user = firebase.auth().currentUser.uid
+  }
+}
+
+</script>
+
 
 <style>
 
 .container {
     margin: 10px auto;
     padding: 50px;
+    text-align: left;
 }
 .add {
     width: 90%;
@@ -82,36 +203,13 @@ textarea {
     tab-size: 4;
 }
 
-</style>
-
-<script>
-import firebase from "firebase";
-export default {
-  data () {
-    return {
-      mounted: false,
-      isLogin: false
-    }
-  },
-  mounted: function() {
-    firebase.auth().onAuthStateChanged((user) => {
-      if (user) {
-        // User is signed in, see docs for a list of available properties
-        // https://firebase.google.com/docs/reference/js/firebase.User
-        this.isLogin = true
-        this.mounted = true
-        // ...
-      } else {
-        // User is signed out
-        // ...
-        this.isLogin = false
-        this.mounted = true
-      }
-    });
-  },
-  constructor() {
-    this.user = firebase.auth().currentUser.uid
-  }
+li {
+  list-style: none;
 }
 
-</script>
+.delete {
+  color: #ec1818;
+  padding-left: 15px;
+}
+
+</style>

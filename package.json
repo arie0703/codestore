@@ -10,6 +10,11 @@
   "dependencies": {
     "core-js": "^3.6.5",
     "firebase": "^8.3.1",
+    "firebase-admin": "^9.5.0",
+    "highlight.js": "^10.7.1",
+    "highlightjs": "^9.16.2",
+    "jQuery": "^1.7.4",
+    "marked": "^2.0.1",
     "vue": "^3.0.0",
     "vue-js-modal": "^2.0.0-rc.6",
     "vue-router": "^4.0.0-0"
