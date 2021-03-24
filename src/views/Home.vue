@@ -25,7 +25,7 @@
         <ul v-for="(post, index) in posts" v-bind:key="index">
           <li>
             <span class="post" v-on:click="showCode(post.code)">{{post.title}}</span>
-            <span class="delete" v-on:click="deleteCode(index)">Delete</span>
+            <span class="delete" v-on:click="deleteCode(post.id)">Delete</span>
           </li>
         </ul>
       </div>
@@ -92,10 +92,11 @@ export default {
       if(this.newCode == "") return;
 
       var currentUser = firebase.auth().currentUser.email
-      var postId = this.posts.length + 1
-      var doc = currentUser + String(postId)
+      //ドキュメントIDを取得・投稿IDとして利用
+      var doc = db.collection("posts").doc().id
       
       db.collection("posts").doc(doc).set({
+        id: doc,
         title: this.posts.length,
         code: this.newCode,
         user_id: currentUser,
@@ -123,20 +124,14 @@ export default {
         });
         
     },
-    deleteCode: function(index) {
-
-      var currentUser = firebase.auth().currentUser.email
-      var postId = index + 1
-      var doc = currentUser + String(postId)
+    deleteCode: function(doc) {
 
       db.collection("posts").doc(doc).delete().then(() => {
-          alert("deleted.")
+        this.reloadPosts()
+        alert("deleted.")
       });
-      this.reloadPosts()
-        
     },
     reloadPosts: function() {
-
       this.posts = [];
       db.collection("posts")
         .where("user_id","==",firebase.auth().currentUser.email)
@@ -147,9 +142,6 @@ export default {
           });
       });
     }
-  },
-  constructor() {
-    this.user = firebase.auth().currentUser.uid
   }
 }
 
