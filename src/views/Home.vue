@@ -4,16 +4,22 @@
       <div id="code">
         <form v-on:submit.prevent>
 
-          <div class="add">
+          <div class="menu-bar">
             <input type="text" id="language" value="" placeholder="言語">
             <button class="btn btn-primary" id="add_button">go</button>
-            <button v-on:click="addCode" class="btn btn-primary btn-store">
+            <button v-on:click="postCode(postId)" class="btn btn-primary btn-store">
               Store
             </button>
+            <button v-on:click="clear" class="btn btn-danger">
+              Clear
+            </button>
+            <p v-if="isEdit">編集モード</p>
+            <p v-if="!isEdit">新規投稿</p>
           </div>
 
           <div class="row">
             <div class="col-xs-6">
+              <input type="hidden" v-model="postId">
               <textarea id="editor" class="form-control" v-model="newCode"></textarea>
             </div>
             <div class="col-xs-6">
@@ -24,7 +30,7 @@
         
         <ul v-for="(post, index) in posts" v-bind:key="index">
           <li>
-            <span class="post" v-on:click="showCode(post.code)">{{post.title}}</span>
+            <span class="post" v-on:click="showCode(post.code, post.id)">{{post.title}}</span>
             <span class="delete" v-on:click="deleteCode(post.id)">Delete</span>
           </li>
         </ul>
@@ -50,8 +56,10 @@ export default {
     return {
       mounted: false,
       isLogin: false,
+      isEdit: false,
       posts: [],
       newCode: "",
+      postId: ""
     }
   },
   mounted: function() {
@@ -88,30 +96,47 @@ export default {
     });
   },
   methods: {
-    addCode: function() {
+    postCode: function(postId) {
       if(this.newCode == "") return;
 
-      var currentUser = firebase.auth().currentUser.email
-      //ドキュメントIDを取得・投稿IDとして利用
-      var doc = db.collection("posts").doc().id
-      
-      db.collection("posts").doc(doc).set({
-        id: doc,
-        title: this.posts.length,
-        code: this.newCode,
-        user_id: currentUser,
-        created_at: new Date
-      }).then(
-        console.log(doc)
-      )
+      if (this.isEdit == false) { //新規投稿
+        var currentUser = firebase.auth().currentUser.email
+        //ドキュメントIDを取得・投稿IDとして利用
+        var doc = db.collection("posts").doc().id
         
-      this.newCode = "";
-      $('#result').html("");
+        db.collection("posts").doc(doc).set({
+          id: doc,
+          title: this.posts.length,
+          code: this.newCode,
+          user_id: currentUser,
+          created_at: new Date
+        }).then(
+          console.log(doc)
+        )
+          
+        this.newCode = "";
+        $('#result').html("");
 
-      //reset
-      this.reloadPosts();
+        //reset
+        this.reloadPosts();
+
+      } else if (this.isEdit == true) { //編集モード
+
+        db.collection("posts").doc(postId).update({
+          title: this.posts.length,
+          code: this.newCode,
+        }).then(
+          console.log("edited!")
+        )
+
+        this.newCode = "";
+        $('#result').html("");
+        this.reloadPosts();
+        this.postId = "";
+        this.isEdit = false;
+      }
     },
-    showCode: function(code) {
+    showCode: function(code ,id) {
 
         this.newCode = code;
         
@@ -122,6 +147,9 @@ export default {
         $('pre code').each(function(i, block) {
             hljs.highlightBlock(block);
         });
+
+        this.isEdit = true;
+        this.postId = id;
         
     },
     deleteCode: function(doc) {
@@ -141,6 +169,12 @@ export default {
               this.posts.push(doc.data())
           });
       });
+    },
+    clear: function() {
+      this.newCode = "";
+      $('#result').html("");
+      this.postId = "";
+      this.isEdit = false;
     }
   }
 }
@@ -155,14 +189,20 @@ export default {
     padding: 50px;
     text-align: left;
 }
-.add {
+.menu-bar {
     width: 90%;
     margin: 10px auto;
     display: flex;
+    background-color: #e4e4e4;
+    padding: 10px;
 }
 
-.add .btn {
+.menu-bar .btn {
     margin-right: 10px;
+}
+
+.menu-bar p {
+  margin: auto 0px;
 }
 
 .btn-store {
