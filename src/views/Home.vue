@@ -5,8 +5,7 @@
         <form v-on:submit.prevent>
 
           <div class="menu-bar">
-            <input type="text" id="language" value="" placeholder="言語">
-            <button class="btn btn-primary" id="add_button">go</button>
+            <input type="text" class="title" v-model="title" placeholder="タイトル">
             <button v-on:click="postCode(postId)" class="btn btn-primary btn-store">
               Store
             </button>
@@ -15,6 +14,11 @@
             </button>
             <p v-if="isEdit">編集モード</p>
             <p v-if="!isEdit">新規投稿</p>
+          </div>
+
+          <div class="menu-bar-2">
+            <input type="text" class="lang" id="language" value="" placeholder="言語">
+            <button class="btn btn-primary btn-lang" id="add_button">go</button>
           </div>
 
           <div class="row">
@@ -30,7 +34,7 @@
         
         <ul v-for="(post, index) in posts" v-bind:key="index">
           <li>
-            <span class="post" v-on:click="showCode(post.code, post.id)">{{post.title}}</span>
+            <span class="post" v-on:click="showCode(post.title, post.code, post.id)">{{post.title}}</span>
             <span class="delete" v-on:click="deleteCode(post.id)">Delete</span>
           </li>
         </ul>
@@ -59,6 +63,7 @@ export default {
       isEdit: false,
       posts: [],
       newCode: "",
+      title: "",
       postId: ""
     }
   },
@@ -106,7 +111,7 @@ export default {
         
         db.collection("posts").doc(doc).set({
           id: doc,
-          title: this.posts.length,
+          title: this.title,
           code: this.newCode,
           user_id: currentUser,
           created_at: new Date
@@ -123,22 +128,24 @@ export default {
       } else if (this.isEdit == true) { //編集モード
 
         db.collection("posts").doc(postId).update({
-          title: this.posts.length,
+          title: this.title,
           code: this.newCode,
         }).then(
           console.log("edited!")
         )
 
+        this.title = "";
         this.newCode = "";
         $('#result').html("");
-        this.reloadPosts();
         this.postId = "";
         this.isEdit = false;
+        this.reloadPosts();
       }
     },
-    showCode: function(code ,id) {
+    showCode: function(title, code ,id) {
 
         this.newCode = code;
+        this.title = title;
         
         //メソッド発火時にmarkedも発動するように設定！
         var src = this.newCode;
@@ -171,6 +178,7 @@ export default {
       });
     },
     clear: function() {
+      this.title = "";
       this.newCode = "";
       $('#result').html("");
       this.postId = "";
@@ -185,13 +193,13 @@ export default {
 <style>
 
 .container {
-    margin: 10px auto;
-    padding: 50px;
+    margin: 0 auto;
+    padding: 0px 50px;
     text-align: left;
 }
 .menu-bar {
     width: 90%;
-    margin: 10px auto;
+    margin: 0px auto;
     display: flex;
     background-color: #e4e4e4;
     padding: 10px;
@@ -205,9 +213,42 @@ export default {
   margin: auto 0px;
 }
 
+.menu-bar .title {
+  width: 300px;
+}
+.menu-bar-2 {
+  width: 90%;
+  height: 50px;
+  margin: 0 auto;
+  display: flex;
+  background-color: #e4e4e4;
+  padding: 10px;
+}
+
+.menu-bar-2 input[type="text"]{
+  height:30px;
+}
+
+.btn-lang {
+  height: 30px;
+  line-height: 10px;
+  background: #555;
+  border: #555;
+}
+
+.btn-lang:hover {
+  background: #333;
+  border: #333;
+}
+
 .btn-store {
-    background-color: green;
-    border: green;
+  background-color: green;
+  border: green;
+}
+
+.btn-store:hover {
+  background-color: darkgreen;
+  border: darkgreen;
 }
 
 input[type="text"] {
