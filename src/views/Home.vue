@@ -119,9 +119,8 @@ export default {
           console.log(doc)
         )
           
-        this.newCode = "";
-        $('#result').html("");
-
+        //入力フォームクリア
+        this.clear();
         //reset
         this.reloadPosts();
 
@@ -134,12 +133,8 @@ export default {
           console.log("edited!")
         )
 
-        this.title = "";
-        this.newCode = "";
-        $('#result').html("");
-        this.postId = "";
-        this.isEdit = false;
-        this.reloadPosts();
+        this.clear();
+        setTimeout(this.reloadPosts,200);
       }
     },
     showCode: function(title, code ,id) {

@@ -24,8 +24,8 @@ input {
 .login {
   text-align: center;
   margin: 0 auto;
-  background: #efefef;
-  width: 70%;
+  background: #dedede;
+  width: 60%;
   padding: 30px;
   border-radius: 10px;
 }
@@ -62,12 +62,15 @@ export default {
     },
     signIn: function () {
       firebase.auth().signInWithEmailAndPassword(this.mailaddress, this.password).then(
-        user => {
-          alert('Success!' + user)
+        (data) => {
+          console.log('Success!' + data.user.email);
           this.$router.push('/')
+          
+          
         },
         err => {
-          alert(err)
+          alert("ログインに失敗しました・・。");
+          console.log(err)
         }
       )
     }
