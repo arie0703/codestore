@@ -80,15 +80,13 @@ export default {
   },
   methods: {
     signOut: function() {
-      console.log("eha");
-      firebase.auth().onAuthStateChanged( (user) => {
-        firebase.auth().signOut().then(()=>{
-          console.log( user + "ログアウトしました");
-          this.$router.push('/')
-        })
-        .catch( (error)=>{
-          console.log(`ログアウト時にエラーが発生しました (${error})`);
-        });
+      firebase.auth().signOut().then(()=>{
+        alert("ログアウトしました");
+        this.$router.push('/')
+        location.reload();
+      })
+      .catch( (error)=>{
+        console.log(`ログアウト時にエラーが発生しました (${error})`);
       });
     }
   }
