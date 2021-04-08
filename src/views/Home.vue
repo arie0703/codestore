@@ -1,7 +1,16 @@
 <template>
   <div class="home" v-if="mounted===true">
     <div class="container" v-if="isLogin===true">
-      <div id="code">
+      <div class="code-list">
+        <ul>
+          <li v-for="(post, index) in posts" v-bind:key="index">
+            <span class="post" v-on:click="showCode(post.title, post.code, post.id)">{{post.title}}</span>
+            <span class="delete" v-on:click="deleteCode(post.id)">×</span>
+          </li>
+        </ul>
+      </div>
+      
+      <div class="code-form" id="code">
         <form v-on:submit.prevent>
 
           <div class="menu-bar">
@@ -31,13 +40,6 @@
             </div>
           </div>
         </form>
-        
-        <ul v-for="(post, index) in posts" v-bind:key="index">
-          <li>
-            <span class="post" v-on:click="showCode(post.title, post.code, post.id)">{{post.title}}</span>
-            <span class="delete" v-on:click="deleteCode(post.id)">Delete</span>
-          </li>
-        </ul>
       </div>
 
     </div>
@@ -102,13 +104,18 @@ export default {
   },
   methods: {
     postCode: function(postId) {
-      if(this.newCode == "") return;
+      if(this.newCode == "") return alert("エラー: 内容が未入力です");
 
       if (this.isEdit == false) { //新規投稿
         var currentUser = firebase.auth().currentUser.email
         //ドキュメントIDを取得・投稿IDとして利用
         var doc = db.collection("posts").doc().id
-        
+
+
+        if (this.title === "") {
+          this.title = "untitled"
+        }
+
         db.collection("posts").doc(doc).set({
           id: doc,
           title: this.title,
@@ -160,6 +167,11 @@ export default {
         this.reloadPosts()
         alert("deleted.")
       });
+
+      //削除対象の投稿が現在編集中の投稿の場合クリアメソッドを発火させる
+      if (doc == this.postId) {
+        this.clear();
+      }
     },
     reloadPosts: function() {
       this.posts = [];
@@ -188,10 +200,27 @@ export default {
 <style>
 
 .container {
-    margin: 0 auto;
-    padding: 0px 50px;
-    text-align: left;
+  margin: 0 auto;
+  text-align: left;
+  display: flex;
 }
+
+.container .code-list {
+  position: absolute;
+  left: 0;
+  width: 200px;
+}
+
+
+
+.container .code-form{
+  width: 75%;
+  position: absolute;
+  left: 180px;
+}
+
+
+
 .menu-bar {
     width: 90%;
     margin: 0px auto;
@@ -276,7 +305,7 @@ li {
 }
 
 .delete {
-  color: #ec1818;
+  color: #b42020;
   padding-left: 15px;
 }
 
